@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +18,8 @@ import java.util.UUID;
 @Setter
 @Getter
 @Entity
-public class Order extends BaseModel{
+@Table(name = "orders")
+public class Order extends BaseModel {
     private UUID userId; // Reference to User without direct mapping
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

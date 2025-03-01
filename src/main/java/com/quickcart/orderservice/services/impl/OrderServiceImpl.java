@@ -11,6 +11,7 @@ import com.quickcart.orderservice.repositories.OrderRepo;
 import com.quickcart.orderservice.services.OrderService;
 import com.quickcart.orderservice.services.ProductService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepo orderRepo;
     private final ProductService productService;
-    private final OrderItemRepo itemRepo;
 
     //TODO create separate initializer to set this at run time
     private final Double gstRate = 0D;
@@ -32,11 +32,16 @@ public class OrderServiceImpl implements OrderService {
     public OrderServiceImpl(OrderRepo orderRepo, ProductService productService, OrderItemRepo itemRepo) {
         this.orderRepo = orderRepo;
         this.productService = productService;
-        this.itemRepo = itemRepo;
     }
 
     @Override
+    @Transactional
     public Order createOrder(OrderDto orderDto) {
+        Order order = new Order();
+        order.setUserId(orderDto.getUserId());
+        order.setOrderDate(LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
+
         List<UUID> productIds = orderDto.getItems().stream()
                 .map(OrderItemDto::getProductId)
                 .toList();
@@ -44,34 +49,30 @@ public class OrderServiceImpl implements OrderService {
         Map<UUID, Product> productMap = productService.getProductsByIds(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, product -> product));
 
-        List<OrderItem> items = prepareItems(orderDto, productMap);
+        List<OrderItem> items = prepareItems(orderDto, productMap, order);
+        order.setOrderItems(items);
+
         Double totalAmount = items.stream()
                 .mapToDouble(OrderItem::getPrice)
                 .sum();
+        order.setTotalAmount(calculateAmount(totalAmount));
 
-        List<OrderItem> savedItems = itemRepo.saveAll(items);
-
-        Order order = prepareOrder(orderDto, savedItems, totalAmount);
         return orderRepo.save(order);
     }
 
-    private Order prepareOrder(OrderDto orderDto, List<OrderItem> savedItems, Double totalAmount) {
-        Order order = new Order();
-        order.setOrderItems(savedItems);
-        order.setUserId(orderDto.getUserId());
-        order.setOrderDate(LocalDateTime.now());
-        order.setTotalAmount(calculateAmount(totalAmount));
-        order.setStatus(OrderStatus.PENDING);
-        return order;
+    @Override
+    public List<Order> getAllOrdersPlacedByUser(String username) {
+        return orderRepo.findAllByUserId(UUID.fromString(username));
     }
 
-    private List<OrderItem> prepareItems(OrderDto orderDto, Map<UUID, Product> productMap) {
+    private List<OrderItem> prepareItems(OrderDto orderDto, Map<UUID, Product> productMap, Order order) {
         return orderDto.getItems().stream()
                 .map(dto -> {
                     Product product = productMap.get(dto.getProductId());
                     Double price = product.getPrice() * dto.getQuantity();
 
                     return OrderItem.builder()
+                            .order(order)
                             .productId(dto.getProductId())
                             .quantity(dto.getQuantity())
                             .price(price)
