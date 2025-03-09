@@ -5,10 +5,11 @@ import com.quickcart.orderservice.dto.OrderItemDto;
 import com.quickcart.orderservice.entities.Order;
 import com.quickcart.orderservice.entities.OrderItem;
 import com.quickcart.orderservice.entities.OrderStatus;
+import com.quickcart.orderservice.exceptions.OrderNotFoundException;
 import com.quickcart.orderservice.models.Product;
-import com.quickcart.orderservice.repositories.OrderItemRepo;
 import com.quickcart.orderservice.repositories.OrderRepo;
 import com.quickcart.orderservice.services.OrderService;
+import com.quickcart.orderservice.services.PaymentService;
 import com.quickcart.orderservice.services.ProductService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,14 +25,16 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepo orderRepo;
     private final ProductService productService;
+    private final PaymentService paymentService;
 
     //TODO create separate initializer to set this at run time
     private final Double gstRate = 0D;
     private final Double additionalTax = 0D;
 
-    public OrderServiceImpl(OrderRepo orderRepo, ProductService productService, OrderItemRepo itemRepo) {
+    public OrderServiceImpl(OrderRepo orderRepo, ProductService productService, PaymentService paymentService) {
         this.orderRepo = orderRepo;
         this.productService = productService;
+        this.paymentService = paymentService;
     }
 
     @Override
@@ -63,6 +66,15 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> getAllOrdersPlacedByUser(String username) {
         return orderRepo.findAllByUserId(UUID.fromString(username));
+    }
+
+    @Override
+    public String placeOrder(String orderId) {
+        Order order = orderRepo.findById(UUID.fromString(orderId)).orElseThrow(() -> new OrderNotFoundException("Order does not exists"));
+        String paymentId = paymentService.createPayment(order.getTotalAmount());
+        order.setPaymentId(paymentId);
+        orderRepo.save(order);
+        return paymentId;
     }
 
     private List<OrderItem> prepareItems(OrderDto orderDto, Map<UUID, Product> productMap, Order order) {

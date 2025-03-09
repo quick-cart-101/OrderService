@@ -9,4 +9,6 @@ public interface OrderService {
     Order createOrder(OrderDto orderDto);
 
     List<Order> getAllOrdersPlacedByUser(String username);
+
+    String placeOrder(String orderId);
 }

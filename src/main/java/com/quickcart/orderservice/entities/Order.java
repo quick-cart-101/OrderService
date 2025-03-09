@@ -32,4 +32,6 @@ public class Order extends BaseModel {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime orderDate;
+
+    private String paymentId;
 }

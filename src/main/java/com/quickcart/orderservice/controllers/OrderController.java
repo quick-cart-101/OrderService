@@ -44,4 +44,10 @@ public class OrderController {
 
         return null;
     }
+
+    @PostMapping("/place")
+    public  ResponseEntity<String> placeOrder(@RequestBody String orderId) {
+        String paymentId = orderService.placeOrder(orderId);
+        return ResponseEntity.ok(paymentId);
+    }
 }
