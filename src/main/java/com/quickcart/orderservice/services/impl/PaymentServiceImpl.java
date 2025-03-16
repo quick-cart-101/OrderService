@@ -1,6 +1,7 @@
 package com.quickcart.orderservice.services.impl;
 
 import com.quickcart.orderservice.dto.PaymentDto;
+import com.quickcart.orderservice.dto.RefundPaymentDto;
 import com.quickcart.orderservice.services.PaymentService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,18 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentDto paymentDto = new PaymentDto();
         paymentDto.setAmount(amount);
         ResponseEntity<String> forEntity = restTemplate.getForEntity(PAYMENT_SERVICE_BASE_URL + "/payment/create", String.class, paymentDto);
+        if (forEntity.getStatusCode().is2xxSuccessful()) {
+            return forEntity.getBody();
+        }
+        return null;
+    }
+
+    @Override
+    public String refundPayment(String paymentId, Double totalAmount) {
+        RefundPaymentDto refundPaymentDto = new RefundPaymentDto();
+        refundPaymentDto.setPaymentId(paymentId);
+        refundPaymentDto.setAmount(totalAmount);
+        ResponseEntity<String> forEntity = restTemplate.getForEntity(PAYMENT_SERVICE_BASE_URL + "/payment/refund", String.class, refundPaymentDto);
         if (forEntity.getStatusCode().is2xxSuccessful()) {
             return forEntity.getBody();
         }

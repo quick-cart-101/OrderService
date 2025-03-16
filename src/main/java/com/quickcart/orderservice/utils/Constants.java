@@ -6,6 +6,6 @@ public class Constants {
     public static final String ROLES = "roles";
     public static final String USER_ID = "user_id";
     public static final String ROLE_ = "ROLE_";
-//    Product Service APIs
+    // Product Service APIs
     public static final String BULK_PRODUCT_URL = "/products/bulk";
 }

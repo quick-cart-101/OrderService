@@ -8,13 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/orders")
@@ -46,8 +50,19 @@ public class OrderController {
     }
 
     @PostMapping("/place")
-    public  ResponseEntity<String> placeOrder(@RequestBody String orderId) {
+    public ResponseEntity<String> placeOrder(@RequestBody String orderId) {
         String paymentId = orderService.placeOrder(orderId);
         return ResponseEntity.ok(paymentId);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Order> updateOrder(@PathVariable UUID id, @RequestBody OrderDto order) {
+        return new ResponseEntity<>(orderService.updateOrder(id, order), HttpStatus.ACCEPTED);
+    }
+
+    @DeleteMapping("/cancel/{orderId}")
+    public ResponseEntity<String> cancelOrder(@PathVariable UUID orderId) {
+        orderService.cancelOrder(orderId);
+        return ResponseEntity.ok("Order cancelled");
     }
 }

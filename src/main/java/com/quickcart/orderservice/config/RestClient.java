@@ -9,7 +9,6 @@ public class RestClient {
 
     @Bean
     public RestTemplate template() {
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate;
+        return new RestTemplate();
     }
 }
