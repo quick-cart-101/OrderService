@@ -33,9 +33,9 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
 
     @Value("${gstRate}")
-    private BigDecimal gstRate;
+    public BigDecimal gstRate;
     @Value("${additionalTax}")
-    private BigDecimal additionalTax;
+    public BigDecimal additionalTax;
 
     public OrderServiceImpl(OrderRepo orderRepo, ProductService productService, PaymentService paymentService) {
         this.orderRepo = orderRepo;
